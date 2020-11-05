@@ -1,11 +1,17 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Resource, Api
 from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import (
+    JWTManager, jwt_required, create_access_token,
+    get_jwt_identity
+)
 
 app = Flask(__name__)
 api = Api(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://lagou3:lagou3@stuq.ceshiren.com:23306/lagou3'
 db = SQLAlchemy(app)
+app.config['JWT_SECRET_KEY'] = 'sardine token'  # Change this!
+jwt = JWTManager(app)
 
 
 # 数据库结构
@@ -31,13 +37,40 @@ class Main(Resource):
 
 # 用户管理
 class UserApi(Resource):
+    # 用户查询
     def get(self):
         users = User.query.all()
         return [{'id': u.id, 'name': u.username} for u in users]
 
+    # 用户登录
+    def post(self):
+        username = request.json.get('username')
+        password = request.json.get('password')
+        user = User.query.filter_by(username=username, password=password).first()
+        if user:
+            acess_token = create_access_token(identity=username)
+            return {'msg': 'login success', 'acess_token': acess_token}
+        else:
+            return {'msg': 'login fail'}
+
+    # 用户注册
+    def put(self):
+        username = request.json.get('username')
+        password = request.json.get('password')
+        email = request.json.get('email')
+        user= User(username=username, password=password, email=email)
+        db.session.add(user)
+        db.session.commit()
+        return {'msg': 'register success'}
+
+    # 用户删除
+    def delets(self):
+        pass
+
 
 # 用例管理
 class TestCaseApi(Resource):
+    @jwt_required
     def get(self):
         return {'hello': 'world'}
 
