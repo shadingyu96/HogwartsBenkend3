@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_restful import Resource, Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import (
@@ -65,14 +65,21 @@ class UserApi(Resource):
 
     # 用户删除
     def delets(self):
-        pass
+        username = request.json.get('username')
+        password = request.json.get('password')
+        email = request.json.get('email')
+        user = User(username=username, password=password, email=email)
+        db.session.delete(user)
+        db.session.commit()
+        return {'msg': 'delete success'}
 
 
 # 用例管理
 class TestCaseApi(Resource):
     @jwt_required
     def get(self):
-        return {'hello': 'world'}
+        current_user = get_jwt_identity()
+        return jsonify(logged_in_as=current_user), {'msg': 'check success'}
 
 
 # 任务管理

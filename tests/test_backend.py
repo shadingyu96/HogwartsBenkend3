@@ -21,3 +21,13 @@ class TestUserApi(TestCase):
         assert r.status_code == 200
         assert r.json()['msg'] == 'login fail'
 
+
+class TestTestCaseApi(TestCase):
+    def test_get(self):
+        r = requests.get('http://127.0.0.1:5000/login', json={
+            'username': 'mr.xia',
+            'password': 'mr.xia'
+        })
+        assert r.status_code == 200
+        assert r.json()['msg'] == 'login fail'
+
